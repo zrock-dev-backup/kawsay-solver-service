@@ -1,0 +1,25 @@
+[project]
+name = "solver-service"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Santiago C. Saavedra",email = "zrock_git@zohomail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "grpcio (>=1.73.1,<2.0.0)",
+    "grpcio-tools (>=1.73.1,<2.0.0)",
+    "google-api-python-client (>=2.176.0,<3.0.0)",
+    "ortools (>=9.14.6206,<10.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.group.dev.dependencies]
+ortools = "^9.14.6206"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
