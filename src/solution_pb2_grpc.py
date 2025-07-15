@@ -3,6 +3,8 @@
 import grpc
 import warnings
 
+import problem_definition_pb2 as problem__definition__pb2
+import solution_pb2 as solution__pb2
 
 GRPC_GENERATED_VERSION = '1.73.1'
 GRPC_VERSION = grpc.__version__
@@ -22,3 +24,91 @@ if _version_not_supported:
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
     )
+
+
+class TimetablingServiceStub(object):
+    """===================================================================
+    Service Definition
+    ===================================================================
+
+    TimetablingService defines the RPC methods available on the solver.
+    """
+
+    def __init__(self, channel):
+        """Constructor.
+
+        Args:
+            channel: A grpc.Channel.
+        """
+        self.Solve = channel.unary_unary(
+                '/timetabling.v1.TimetablingService/Solve',
+                request_serializer=problem__definition__pb2.ProblemDefinition.SerializeToString,
+                response_deserializer=solution__pb2.Solution.FromString,
+                _registered_method=True)
+
+
+class TimetablingServiceServicer(object):
+    """===================================================================
+    Service Definition
+    ===================================================================
+
+    TimetablingService defines the RPC methods available on the solver.
+    """
+
+    def Solve(self, request, context):
+        """Takes a complete problem definition and returns a potential solution.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+
+def add_TimetablingServiceServicer_to_server(servicer, server):
+    rpc_method_handlers = {
+            'Solve': grpc.unary_unary_rpc_method_handler(
+                    servicer.Solve,
+                    request_deserializer=problem__definition__pb2.ProblemDefinition.FromString,
+                    response_serializer=solution__pb2.Solution.SerializeToString,
+            ),
+    }
+    generic_handler = grpc.method_handlers_generic_handler(
+            'timetabling.v1.TimetablingService', rpc_method_handlers)
+    server.add_generic_rpc_handlers((generic_handler,))
+    server.add_registered_method_handlers('timetabling.v1.TimetablingService', rpc_method_handlers)
+
+
+ # This class is part of an EXPERIMENTAL API.
+class TimetablingService(object):
+    """===================================================================
+    Service Definition
+    ===================================================================
+
+    TimetablingService defines the RPC methods available on the solver.
+    """
+
+    @staticmethod
+    def Solve(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/timetabling.v1.TimetablingService/Solve',
+            problem__definition__pb2.ProblemDefinition.SerializeToString,
+            solution__pb2.Solution.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)

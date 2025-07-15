@@ -1,8 +1,18 @@
 syntax = "proto3";
-
 import "problem_definition.proto";
 
 package timetabling.v1;
+
+// ===================================================================
+// Service Definition
+// ===================================================================
+
+// TimetablingService defines the RPC methods available on the solver.
+service TimetablingService {
+  // Takes a complete problem definition and returns a potential solution.
+  rpc Solve (ProblemDefinition) returns (Solution) {}
+}
+
 
 // ===================================================================
 // Main Response Message
