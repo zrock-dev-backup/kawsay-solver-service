@@ -14,19 +14,19 @@
       {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            # Python interpreter
             python311
-            # Poetry for package management
             poetry
-            # System dependencies that Poetry can't handle
-            # Add any system libraries your Python packages need
+
             pkg-config
-            gcc
+            protobuf
             zlib
-            openssl
+
+            gcc-unwrapped.lib
+            stdenv.cc.cc.lib
           ];
 
           shellHook = ''
+          export LD_LIBRARY_PATH="${pkgs.zlib}/lib:${pkgs.stdenv.cc.cc.lib}/lib:$LD_LIBRARY_PATH"
             # Initialize poetry project if pyproject.toml doesn't exist
             if [ ! -f "pyproject.toml" ]; then
               echo "Initializing Poetry project..."

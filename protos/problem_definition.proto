@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package timetabling.v1;
+
+// ===================================================================
+// Main Request Message
+// ===================================================================
+
+// ProblemDefinition contains the complete, self-contained definition of a
+// timetabling problem to be solved.
+message ProblemDefinition {
+  // A unique identifier for this job request.
+  string job_id = 1;
+
+  // The configuration for the solver.
+  SolverConfig config = 2;
+
+  // The grid of all possible time slots for the schedule.
+  TimeGrid time_grid = 3;
+
+  // The list of all teachers involved in this problem.
+  repeated Teacher teachers = 4;
+
+  // The list of all student groups.
+  repeated StudentGroup student_groups = 5;
+
+  // The list of all activities (classes, lectures, labs) to be scheduled.
+  repeated Activity activities = 6;
+}
+
+// ===================================================================
+// Configuration
+// ===================================================================
+
+message SolverConfig {
+  // Maximum time in seconds the solver is allowed to run.
+  float max_solve_time_seconds = 1;
+}
+
+message TimeGrid {
+  // The total number of days in the scheduling period (e.g., 5 for Mon-Fri).
+  int32 days = 1;
+  // The number of time slots (e.g., hours) per day.
+  int32 slots_per_day = 2;
+}
+
+// ===================================================================
+// Core Entities
+// ===================================================================
+
+message Teacher {
+  string id = 1;
+  string name = 2;
+
+  // A list of times when this teacher is explicitly NOT available.
+  // This is a hard constraint.
+  repeated TimeSlot unavailable_slots = 3;
+}
+
+message StudentGroup {
+  string id = 1;
+  string name = 2;
+}
+
+message Activity {
+  string id = 1;
+  string name = 2;
+
+  // The ID of the teacher assigned to this activity.
+  string teacher_id = 3;
+
+  // The IDs of all student groups that must attend this activity.
+  repeated string student_group_ids = 4;
+
+  // The duration of the activity in number of time slots.
+  // A standard 1-hour class would be 1. A 3-hour lab would be 3.
+  int32 duration_in_slots = 5;
+
+  // If true, this activity has been pre-placed by a user.
+  // The solver must treat its `locked_start_time` as a fixed constraint.
+  bool is_locked = 6;
+  TimeSlot locked_start_time = 7;
+}
+
+// ===================================================================
+// Shared Structures
+// ===================================================================
+
+// Represents a single point in the timetable grid.
+message TimeSlot {
+  // The day index, 0-based (e.g., 0=Monday, 1=Tuesday).
+  int32 day_index = 1;
+  // The slot index within the day, 0-based (e.g., 0=9am, 1=10am).
+  int32 slot_index = 2;
+}

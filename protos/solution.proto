@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+import "problem_definition.proto";
+
+package timetabling.v1;
+
+// ===================================================================
+// Main Response Message
+// ===================================================================
+
+// Solution represents the result of a timetabling job.
+message Solution {
+  // The ID of the job this solution corresponds to.
+  string job_id = 1;
+
+  // The final status of the solver run.
+  SolverStatus status = 2;
+
+  // The list of all successfully scheduled activities.
+  // This will be empty if the status is INFEASIBLE.
+  repeated ScheduledActivity scheduled_activities = 3;
+
+  // A human-readable message, especially useful for errors or warnings.
+  string message = 4;
+}
+
+// ===================================================================
+// Solution Structures
+// ===================================================================
+
+// The final placement of a single activity.
+message ScheduledActivity {
+  string activity_id = 1;
+
+  // The time slot where the activity begins.
+  TimeSlot start_time = 2;
+}
+
+// Enum describing the outcome of the solve attempt.
+// This is critical for the client to understand the result.
+enum SolverStatus {
+  // The status is unknown. Should not happen in practice.
+  UNKNOWN = 0;
+  // The solver found an optimal solution that satisfies all constraints.
+  OPTIMAL = 1;
+  // The solver found a solution that satisfies all hard constraints,
+  // but may not be optimal (e.g., if the time limit was reached).
+  FEASIBLE = 2;
+  // The solver proved that no solution exists for the given hard constraints.
+  INFEASIBLE = 3;
+  // The solver failed due to an invalid model or internal error.
+  MODEL_INVALID = 4;
+}
