@@ -2,7 +2,7 @@ import grpc
 from concurrent import futures
 import time
 
-import solution_pb2_grpc
+from protos import solution_pb2_grpc
 from services.timetabling_service import TimetablingService
 
 def serve():

@@ -1,8 +1,8 @@
 from ortools.sat.python import cp_model
 
-import problem_definition_pb2 as problem_pb
-import solution_pb2 as solution_pb
-import solution_pb2_grpc
+from protos import problem_definition_pb2 as problem_pb
+from protos import solution_pb2 as solution_pb
+from protos import solution_pb2_grpc
 
 from components.modeler import Modeler
 from components.solution_mapper import SolutionMapper
