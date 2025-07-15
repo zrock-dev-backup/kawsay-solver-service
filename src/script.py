@@ -1,8 +1,8 @@
 import collections
 from ortools.sat.python import cp_model
 
-from protos import problem_definition_pb2 as problem_pb
-from protos import solution_pb2 as solution_pb
+import problem_definition_pb2 as problem_pb
+import solution_pb2 as solution_pb
 
 def solve_timetable(problem: problem_pb.ProblemDefinition) -> solution_pb.Solution:
     """
