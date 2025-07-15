@@ -32,6 +32,8 @@ message Solution {
 
   // A human-readable message, especially useful for errors or warnings.
   string message = 4;
+  // The final objective value from the solver. Lower is better.
+  int64 quality_score = 5;
 }
 
 // ===================================================================

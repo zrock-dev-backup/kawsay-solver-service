@@ -7,20 +7,22 @@ from typing import ClassVar as _ClassVar, Optional as _Optional, Union as _Union
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class ProblemDefinition(_message.Message):
-    __slots__ = ("job_id", "config", "time_grid", "teachers", "student_groups", "activities")
+    __slots__ = ("job_id", "config", "time_grid", "teachers", "student_groups", "activities", "workload_constraints")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     CONFIG_FIELD_NUMBER: _ClassVar[int]
     TIME_GRID_FIELD_NUMBER: _ClassVar[int]
     TEACHERS_FIELD_NUMBER: _ClassVar[int]
     STUDENT_GROUPS_FIELD_NUMBER: _ClassVar[int]
     ACTIVITIES_FIELD_NUMBER: _ClassVar[int]
+    WORKLOAD_CONSTRAINTS_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     config: SolverConfig
     time_grid: TimeGrid
     teachers: _containers.RepeatedCompositeFieldContainer[Teacher]
     student_groups: _containers.RepeatedCompositeFieldContainer[StudentGroup]
     activities: _containers.RepeatedCompositeFieldContainer[Activity]
-    def __init__(self, job_id: _Optional[str] = ..., config: _Optional[_Union[SolverConfig, _Mapping]] = ..., time_grid: _Optional[_Union[TimeGrid, _Mapping]] = ..., teachers: _Optional[_Iterable[_Union[Teacher, _Mapping]]] = ..., student_groups: _Optional[_Iterable[_Union[StudentGroup, _Mapping]]] = ..., activities: _Optional[_Iterable[_Union[Activity, _Mapping]]] = ...) -> None: ...
+    workload_constraints: _containers.RepeatedCompositeFieldContainer[WorkloadConstraint]
+    def __init__(self, job_id: _Optional[str] = ..., config: _Optional[_Union[SolverConfig, _Mapping]] = ..., time_grid: _Optional[_Union[TimeGrid, _Mapping]] = ..., teachers: _Optional[_Iterable[_Union[Teacher, _Mapping]]] = ..., student_groups: _Optional[_Iterable[_Union[StudentGroup, _Mapping]]] = ..., activities: _Optional[_Iterable[_Union[Activity, _Mapping]]] = ..., workload_constraints: _Optional[_Iterable[_Union[WorkloadConstraint, _Mapping]]] = ...) -> None: ...
 
 class SolverConfig(_message.Message):
     __slots__ = ("max_solve_time_seconds",)
@@ -79,3 +81,15 @@ class TimeSlot(_message.Message):
     day_index: int
     slot_index: int
     def __init__(self, day_index: _Optional[int] = ..., slot_index: _Optional[int] = ...) -> None: ...
+
+class WorkloadConstraint(_message.Message):
+    __slots__ = ("teacher_id", "max_gaps_per_day", "penalty_per_gap", "max_hours_per_day")
+    TEACHER_ID_FIELD_NUMBER: _ClassVar[int]
+    MAX_GAPS_PER_DAY_FIELD_NUMBER: _ClassVar[int]
+    PENALTY_PER_GAP_FIELD_NUMBER: _ClassVar[int]
+    MAX_HOURS_PER_DAY_FIELD_NUMBER: _ClassVar[int]
+    teacher_id: str
+    max_gaps_per_day: int
+    penalty_per_gap: int
+    max_hours_per_day: int
+    def __init__(self, teacher_id: _Optional[str] = ..., max_gaps_per_day: _Optional[int] = ..., penalty_per_gap: _Optional[int] = ..., max_hours_per_day: _Optional[int] = ...) -> None: ...

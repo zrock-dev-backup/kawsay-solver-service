@@ -21,7 +21,7 @@ class SolutionMapper:
         solution.status = self._get_solution_status()
         
         if self.status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
-            solution.message = "A valid schedule was found."
+            solution.message = f"Solution found with quality score (lower is better): {self.solver.ObjectiveValue()}"
             self._populate_scheduled_activities(solution)
         elif self.status == cp_model.INFEASIBLE:
             solution.message = "The problem is infeasible. No solution exists under the given constraints."

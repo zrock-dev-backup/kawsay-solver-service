@@ -10,28 +10,33 @@ from components.solution_mapper import SolutionMapper
 class TimetablingService(solution_pb2_grpc.TimetablingServiceServicer):
     """
     Implements the gRPC service for solving timetabling problems.
+    Acts as a "Director" that calls the Modeler's methods in sequence.
     """
     def Solve(self, request: problem_pb.ProblemDefinition, context) -> solution_pb.Solution:
-        """
-        Handles a single 'Solve' request.
-        Orchestrates the model building, solving, and solution mapping.
-        """
         print(f"Received Solve request for job_id: {request.job_id}")
         
         try:
-            # 1. Delegate model building
+            # 1. Instantiate the Modeler. Variables are created automatically.
             modeler = Modeler(request)
-            model = modeler.build_model()
             
-            # 2. Create the solver and solve
+            # 2. Direct the Modeler to apply constraints in logical groups.
+            modeler.apply_fundamental_constraints()
+            
+            # To debug an INFEASIBLE result, comment out the next line.
+            modeler.apply_workload_constraints()
+            
+            # 3. Finalize the model with an objective function.
+            modeler.define_objective()
+            
+            # 4. Create the solver and solve the constructed model.
             solver = cp_model.CpSolver()
             solver.parameters.max_time_in_seconds = request.config.max_solve_time_seconds
             
             print("\n--- Solving Model ---")
-            status = solver.Solve(model)
+            status = solver.Solve(modeler.model) # Pass the model from the modeler
             print(f"Solver status: {solver.StatusName(status)}")
             
-            # 3. Delegate solution mapping
+            # 5. Delegate solution mapping.
             mapper = SolutionMapper(request, modeler, solver, status)
             solution = mapper.map_solution()
             

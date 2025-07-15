@@ -37,6 +37,19 @@ def create_mock_problem() -> problem_pb.ProblemDefinition:
     algo_activity.is_locked = True
     algo_activity.locked_start_time.day_index = 2
     algo_activity.locked_start_time.slot_index = 0
+
+    # --- Constraint Test: Add workload constraints for Dr. Turing ---
+    workload_turing = problem.workload_constraints.add()
+    workload_turing.teacher_id = "T1"
+    workload_turing.max_gaps_per_day = 1  # Dr. Turing wants a compact schedule
+    workload_turing.penalty_per_gap = 10   # Make gaps costly
+    workload_turing.max_hours_per_day = 0 # Hard limit of 3 hours per day
+
+    # --- Constraint Test: Add workload constraints for Dr. Hopper ---
+    workload_hopper = problem.workload_constraints.add()
+    workload_hopper.teacher_id = "T2"
+    workload_hopper.max_hours_per_day = 2 # Hard limit of 2 hours per day
+    # Dr. Hopper doesn't have a gap constraint, so we don't set it.
     
     return problem
 

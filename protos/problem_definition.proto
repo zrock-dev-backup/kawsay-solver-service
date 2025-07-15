@@ -26,6 +26,8 @@ message ProblemDefinition {
 
   // The list of all activities (classes, lectures, labs) to be scheduled.
   repeated Activity activities = 6;
+
+  repeated WorkloadConstraint workload_constraints = 7;
 }
 
 // ===================================================================
@@ -92,4 +94,21 @@ message TimeSlot {
   int32 day_index = 1;
   // The slot index within the day, 0-based (e.g., 0=9am, 1=10am).
   int32 slot_index = 2;
+}
+
+// Defines workload and quality rules.
+message WorkloadConstraint {
+  // The ID of the teacher this constraint applies to.
+  // If empty, it could apply to all teachers (future enhancement).
+  string teacher_id = 1;
+
+  // --- Soft Constraint: Max Gaps Per Day ---
+  // The maximum number of idle slots between the first and last activity of a day.
+  int32 max_gaps_per_day = 2;
+  // The penalty added to the objective for each gap over the maximum.
+  int32 penalty_per_gap = 3;
+
+  // --- Hard Constraint: Max Hours Per Day ---
+  // The absolute maximum number of hours (slots) a teacher can work in a single day.
+  int32 max_hours_per_day = 4;
 }

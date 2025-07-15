@@ -25,19 +25,19 @@ _sym_db = _symbol_database.Default()
 import problem_definition_pb2 as problem__definition__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0esolution.proto\x12\x0etimetabling.v1\x1a\x18problem_definition.proto\"\x9a\x01\n\x08Solution\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12,\n\x06status\x18\x02 \x01(\x0e\x32\x1c.timetabling.v1.SolverStatus\x12?\n\x14scheduled_activities\x18\x03 \x03(\x0b\x32!.timetabling.v1.ScheduledActivity\x12\x0f\n\x07message\x18\x04 \x01(\t\"V\n\x11ScheduledActivity\x12\x13\n\x0b\x61\x63tivity_id\x18\x01 \x01(\t\x12,\n\nstart_time\x18\x02 \x01(\x0b\x32\x18.timetabling.v1.TimeSlot*Y\n\x0cSolverStatus\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0b\n\x07OPTIMAL\x10\x01\x12\x0c\n\x08\x46\x45\x41SIBLE\x10\x02\x12\x0e\n\nINFEASIBLE\x10\x03\x12\x11\n\rMODEL_INVALID\x10\x04\x32\\\n\x12TimetablingService\x12\x46\n\x05Solve\x12!.timetabling.v1.ProblemDefinition\x1a\x18.timetabling.v1.Solution\"\x00\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0esolution.proto\x12\x0etimetabling.v1\x1a\x18problem_definition.proto\"\xb1\x01\n\x08Solution\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12,\n\x06status\x18\x02 \x01(\x0e\x32\x1c.timetabling.v1.SolverStatus\x12?\n\x14scheduled_activities\x18\x03 \x03(\x0b\x32!.timetabling.v1.ScheduledActivity\x12\x0f\n\x07message\x18\x04 \x01(\t\x12\x15\n\rquality_score\x18\x05 \x01(\x03\"V\n\x11ScheduledActivity\x12\x13\n\x0b\x61\x63tivity_id\x18\x01 \x01(\t\x12,\n\nstart_time\x18\x02 \x01(\x0b\x32\x18.timetabling.v1.TimeSlot*Y\n\x0cSolverStatus\x12\x0b\n\x07UNKNOWN\x10\x00\x12\x0b\n\x07OPTIMAL\x10\x01\x12\x0c\n\x08\x46\x45\x41SIBLE\x10\x02\x12\x0e\n\nINFEASIBLE\x10\x03\x12\x11\n\rMODEL_INVALID\x10\x04\x32\\\n\x12TimetablingService\x12\x46\n\x05Solve\x12!.timetabling.v1.ProblemDefinition\x1a\x18.timetabling.v1.Solution\"\x00\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'solution_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_SOLVERSTATUS']._serialized_start=305
-  _globals['_SOLVERSTATUS']._serialized_end=394
+  _globals['_SOLVERSTATUS']._serialized_start=328
+  _globals['_SOLVERSTATUS']._serialized_end=417
   _globals['_SOLUTION']._serialized_start=61
-  _globals['_SOLUTION']._serialized_end=215
-  _globals['_SCHEDULEDACTIVITY']._serialized_start=217
-  _globals['_SCHEDULEDACTIVITY']._serialized_end=303
-  _globals['_TIMETABLINGSERVICE']._serialized_start=396
-  _globals['_TIMETABLINGSERVICE']._serialized_end=488
+  _globals['_SOLUTION']._serialized_end=238
+  _globals['_SCHEDULEDACTIVITY']._serialized_start=240
+  _globals['_SCHEDULEDACTIVITY']._serialized_end=326
+  _globals['_TIMETABLINGSERVICE']._serialized_start=419
+  _globals['_TIMETABLINGSERVICE']._serialized_end=511
 # @@protoc_insertion_point(module_scope)

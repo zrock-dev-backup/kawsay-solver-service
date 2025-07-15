@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18problem_definition.proto\x12\x0etimetabling.v1\"\x8d\x02\n\x11ProblemDefinition\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12,\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x1c.timetabling.v1.SolverConfig\x12+\n\ttime_grid\x18\x03 \x01(\x0b\x32\x18.timetabling.v1.TimeGrid\x12)\n\x08teachers\x18\x04 \x03(\x0b\x32\x17.timetabling.v1.Teacher\x12\x34\n\x0estudent_groups\x18\x05 \x03(\x0b\x32\x1c.timetabling.v1.StudentGroup\x12,\n\nactivities\x18\x06 \x03(\x0b\x32\x18.timetabling.v1.Activity\".\n\x0cSolverConfig\x12\x1e\n\x16max_solve_time_seconds\x18\x01 \x01(\x02\"/\n\x08TimeGrid\x12\x0c\n\x04\x64\x61ys\x18\x01 \x01(\x05\x12\x15\n\rslots_per_day\x18\x02 \x01(\x05\"X\n\x07Teacher\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x33\n\x11unavailable_slots\x18\x03 \x03(\x0b\x32\x18.timetabling.v1.TimeSlot\"(\n\x0cStudentGroup\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\"\xb6\x01\n\x08\x41\x63tivity\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\nteacher_id\x18\x03 \x01(\t\x12\x19\n\x11student_group_ids\x18\x04 \x03(\t\x12\x19\n\x11\x64uration_in_slots\x18\x05 \x01(\x05\x12\x11\n\tis_locked\x18\x06 \x01(\x08\x12\x33\n\x11locked_start_time\x18\x07 \x01(\x0b\x32\x18.timetabling.v1.TimeSlot\"1\n\x08TimeSlot\x12\x11\n\tday_index\x18\x01 \x01(\x05\x12\x12\n\nslot_index\x18\x02 \x01(\x05\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18problem_definition.proto\x12\x0etimetabling.v1\"\xcf\x02\n\x11ProblemDefinition\x12\x0e\n\x06job_id\x18\x01 \x01(\t\x12,\n\x06\x63onfig\x18\x02 \x01(\x0b\x32\x1c.timetabling.v1.SolverConfig\x12+\n\ttime_grid\x18\x03 \x01(\x0b\x32\x18.timetabling.v1.TimeGrid\x12)\n\x08teachers\x18\x04 \x03(\x0b\x32\x17.timetabling.v1.Teacher\x12\x34\n\x0estudent_groups\x18\x05 \x03(\x0b\x32\x1c.timetabling.v1.StudentGroup\x12,\n\nactivities\x18\x06 \x03(\x0b\x32\x18.timetabling.v1.Activity\x12@\n\x14workload_constraints\x18\x07 \x03(\x0b\x32\".timetabling.v1.WorkloadConstraint\".\n\x0cSolverConfig\x12\x1e\n\x16max_solve_time_seconds\x18\x01 \x01(\x02\"/\n\x08TimeGrid\x12\x0c\n\x04\x64\x61ys\x18\x01 \x01(\x05\x12\x15\n\rslots_per_day\x18\x02 \x01(\x05\"X\n\x07Teacher\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x33\n\x11unavailable_slots\x18\x03 \x03(\x0b\x32\x18.timetabling.v1.TimeSlot\"(\n\x0cStudentGroup\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\"\xb6\x01\n\x08\x41\x63tivity\x12\n\n\x02id\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x12\n\nteacher_id\x18\x03 \x01(\t\x12\x19\n\x11student_group_ids\x18\x04 \x03(\t\x12\x19\n\x11\x64uration_in_slots\x18\x05 \x01(\x05\x12\x11\n\tis_locked\x18\x06 \x01(\x08\x12\x33\n\x11locked_start_time\x18\x07 \x01(\x0b\x32\x18.timetabling.v1.TimeSlot\"1\n\x08TimeSlot\x12\x11\n\tday_index\x18\x01 \x01(\x05\x12\x12\n\nslot_index\x18\x02 \x01(\x05\"v\n\x12WorkloadConstraint\x12\x12\n\nteacher_id\x18\x01 \x01(\t\x12\x18\n\x10max_gaps_per_day\x18\x02 \x01(\x05\x12\x17\n\x0fpenalty_per_gap\x18\x03 \x01(\x05\x12\x19\n\x11max_hours_per_day\x18\x04 \x01(\x05\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -32,17 +32,19 @@ _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'problem_definition_pb2', _g
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
   _globals['_PROBLEMDEFINITION']._serialized_start=45
-  _globals['_PROBLEMDEFINITION']._serialized_end=314
-  _globals['_SOLVERCONFIG']._serialized_start=316
-  _globals['_SOLVERCONFIG']._serialized_end=362
-  _globals['_TIMEGRID']._serialized_start=364
-  _globals['_TIMEGRID']._serialized_end=411
-  _globals['_TEACHER']._serialized_start=413
-  _globals['_TEACHER']._serialized_end=501
-  _globals['_STUDENTGROUP']._serialized_start=503
-  _globals['_STUDENTGROUP']._serialized_end=543
-  _globals['_ACTIVITY']._serialized_start=546
-  _globals['_ACTIVITY']._serialized_end=728
-  _globals['_TIMESLOT']._serialized_start=730
-  _globals['_TIMESLOT']._serialized_end=779
+  _globals['_PROBLEMDEFINITION']._serialized_end=380
+  _globals['_SOLVERCONFIG']._serialized_start=382
+  _globals['_SOLVERCONFIG']._serialized_end=428
+  _globals['_TIMEGRID']._serialized_start=430
+  _globals['_TIMEGRID']._serialized_end=477
+  _globals['_TEACHER']._serialized_start=479
+  _globals['_TEACHER']._serialized_end=567
+  _globals['_STUDENTGROUP']._serialized_start=569
+  _globals['_STUDENTGROUP']._serialized_end=609
+  _globals['_ACTIVITY']._serialized_start=612
+  _globals['_ACTIVITY']._serialized_end=794
+  _globals['_TIMESLOT']._serialized_start=796
+  _globals['_TIMESLOT']._serialized_end=845
+  _globals['_WORKLOADCONSTRAINT']._serialized_start=847
+  _globals['_WORKLOADCONSTRAINT']._serialized_end=965
 # @@protoc_insertion_point(module_scope)

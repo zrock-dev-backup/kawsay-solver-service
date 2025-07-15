@@ -22,16 +22,18 @@ INFEASIBLE: SolverStatus
 MODEL_INVALID: SolverStatus
 
 class Solution(_message.Message):
-    __slots__ = ("job_id", "status", "scheduled_activities", "message")
+    __slots__ = ("job_id", "status", "scheduled_activities", "message", "quality_score")
     JOB_ID_FIELD_NUMBER: _ClassVar[int]
     STATUS_FIELD_NUMBER: _ClassVar[int]
     SCHEDULED_ACTIVITIES_FIELD_NUMBER: _ClassVar[int]
     MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    QUALITY_SCORE_FIELD_NUMBER: _ClassVar[int]
     job_id: str
     status: SolverStatus
     scheduled_activities: _containers.RepeatedCompositeFieldContainer[ScheduledActivity]
     message: str
-    def __init__(self, job_id: _Optional[str] = ..., status: _Optional[_Union[SolverStatus, str]] = ..., scheduled_activities: _Optional[_Iterable[_Union[ScheduledActivity, _Mapping]]] = ..., message: _Optional[str] = ...) -> None: ...
+    quality_score: int
+    def __init__(self, job_id: _Optional[str] = ..., status: _Optional[_Union[SolverStatus, str]] = ..., scheduled_activities: _Optional[_Iterable[_Union[ScheduledActivity, _Mapping]]] = ..., message: _Optional[str] = ..., quality_score: _Optional[int] = ...) -> None: ...
 
 class ScheduledActivity(_message.Message):
     __slots__ = ("activity_id", "start_time")
