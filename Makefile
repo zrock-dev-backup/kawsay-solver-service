@@ -1,6 +1,4 @@
-# Makefile
-
-.PHONY: protoBuild run-server run-client
+.PHONY: protoBuild run-server run-client benchmark benchmark-update test
 
 # Generates Python code from .proto files and places it in src/protos
 protoBuild:
@@ -8,9 +6,9 @@ protoBuild:
 	@touch src/protos/__init__.py
 	python -m grpc_tools.protoc \
 		-I./protos \
-		--python_out=src \
-		--pyi_out=src \
-		--grpc_python_out=src \
+		--python_out=src/protos \
+		--pyi_out=src/protos \
+		--grpc_python_out=src/protos \
 		$(shell find protos -name "*.proto")
 	@echo "Protobuf files generated successfully in src/protos/"
 
@@ -23,3 +21,18 @@ run-server:
 run-client:
 	@echo "Running test client..."
 	python src/client.py
+
+# Runs the performance benchmarks against the stored baseline
+benchmark:
+	@echo "Running performance benchmarks against baseline..."
+	python benchmarks/runner.py
+
+# Runs the benchmarks and updates the baseline.json file with the new results
+benchmark-update:
+	@echo "Running benchmarks and updating baseline.json..."
+	python -m benchmarks.runner --update-baseline
+
+# Runs the unit tests (to be implemented)
+test:
+	@echo "Running unit tests..."
+	# pytest tests/
