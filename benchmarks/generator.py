@@ -1,5 +1,5 @@
 import random
-from solver_service.protos import problem_definition_pb2 as problem_pb
+from src.solver_service.protos import problem_definition_pb2 as problem_pb
 
 def generate_problem(config: dict) -> problem_pb.ProblemDefinition:
     """
@@ -11,19 +11,23 @@ def generate_problem(config: dict) -> problem_pb.ProblemDefinition:
     Returns:
         A ProblemDefinition protobuf object.
     """
+    print("--- Generating Problem ---")
     problem = problem_pb.ProblemDefinition()
     problem.job_id = f"benchmark-{config['name']}"
 
     # --- Basic Setup ---
+    print("Basic Setup:")
     problem.config.max_solve_time_seconds = 300.0  # 5 minutes
     problem.time_grid.days = 5
     problem.time_grid.slots_per_day = 8
 
     # --- Generate Entities ---
+    print("Entities generation")
     teachers = [problem.teachers.add(id=f"T{i+1}", name=f"Teacher_{i+1}") for i in range(config["num_teachers"])]
     groups = [problem.student_groups.add(id=f"G{i+1}", name=f"Group_{i+1}") for i in range(config["num_groups"])]
 
     # --- Generate Activities ---
+    print("Activities generation")
     activities = []
     for i in range(config["num_activities"]):
         activity = problem.activities.add(
@@ -37,8 +41,10 @@ def generate_problem(config: dict) -> problem_pb.ProblemDefinition:
         activities.append(activity)
 
     # --- Generate Constraints to add difficulty ---
-    
+    print("Constraints generation")
+
     # Teacher Unavailability
+    print("Teacher Unavailability:")
     num_teachers_with_unavailability = int(config["num_teachers"] * config["unavail_percent"])
     teachers_to_constrain = random.sample(teachers, num_teachers_with_unavailability)
     for teacher in teachers_to_constrain:
@@ -48,6 +54,7 @@ def generate_problem(config: dict) -> problem_pb.ProblemDefinition:
             slot.slot_index = random.randint(0, problem.time_grid.slots_per_day - 1)
 
     # Locked Activities
+    print("Locked Activities:")
     num_activities_to_lock = int(config["num_activities"] * config["lock_percent"])
     activities_to_lock = random.sample(activities, num_activities_to_lock)
     for activity in activities_to_lock:
@@ -56,6 +63,7 @@ def generate_problem(config: dict) -> problem_pb.ProblemDefinition:
         activity.locked_start_time.slot_index = random.randint(0, problem.time_grid.slots_per_day - 2) # Ensure it fits
 
     # Workload Constraints
+    print("Workload Constraints:")
     for teacher in teachers:
         workload = problem.workload_constraints.add()
         workload.teacher_id = teacher.id

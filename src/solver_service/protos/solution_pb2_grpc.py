@@ -3,8 +3,8 @@
 import grpc
 import warnings
 
-import problem_definition_pb2 as problem__definition__pb2
-import solution_pb2 as solution__pb2
+from . import problem_definition_pb2 as problem__definition__pb2
+from . import solution_pb2 as solution__pb2
 
 GRPC_GENERATED_VERSION = '1.73.1'
 GRPC_VERSION = grpc.__version__

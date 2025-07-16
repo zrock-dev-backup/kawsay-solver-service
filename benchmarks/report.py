@@ -15,14 +15,9 @@ class Colors:
 def print_report(results: list, baseline: dict, regression_threshold: float = 0.15):
     """
     Prints a formatted report comparing benchmark results to a baseline.
-
-    Args:
-        results: A list of dictionaries, each containing the results of a run.
-        baseline: A dictionary containing the baseline results.
-        regression_threshold: The percentage (e.g., 0.15 for 15%) of performance
-                              decrease that is considered a failure.
     """
-    header = f"{'Problem Size':<15} | {'Status':<10} | {'Time (s)':<10} | {'Objective':<12} | {'Memory (MB)':<14} | {'Baseline Comparison':<25}"
+    header = (f"{'Problem Size':<15} | {'Status':<10} | {'Time (s)':<10} | {'Workload StdDev':<17} | "
+              f"{'Avg Gaps':<10} | {'Baseline Comparison':<25}")
     print(f"{Colors.BOLD}{Colors.HEADER}{header}{Colors.ENDC}")
     print("-" * len(header))
 
@@ -34,8 +29,8 @@ def print_report(results: list, baseline: dict, regression_threshold: float = 0.
 
         # Format current results
         time_str = f"{res['time']:.2f}"
-        mem_str = f"{res['memory']:.2f}"
-        obj_str = f"{res.get('objective', 'N/A')}"
+        workload_str = f"{res.get('workload_std_dev', 'N/A'):.2f}" if isinstance(res.get('workload_std_dev'), float) else "N/A"
+        gaps_str = f"{res.get('avg_gaps', 'N/A'):.2f}" if isinstance(res.get('avg_gaps'), float) else "N/A"
 
         # Compare to baseline
         comparison_str = ""
@@ -57,7 +52,8 @@ def print_report(results: list, baseline: dict, regression_threshold: float = 0.
             overall_pass = False
 
         print(
-            f"{row_color}{name:<15}{Colors.ENDC} | {res['status']:<10} | {time_str:<10} | {obj_str:<12} | {mem_str:<14} | {comparison_str:<25}")
+            f"{row_color}{name:<15}{Colors.ENDC} | {res['status']:<10} | {time_str:<10} | {workload_str:<17} | "
+            f"{gaps_str:<10} | {comparison_str:<25}")
 
     if not overall_pass:
         print(
