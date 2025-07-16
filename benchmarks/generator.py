@@ -1,5 +1,5 @@
 import random
-import problem_definition_pb2 as problem_pb
+from solver_service.protos import problem_definition_pb2 as problem_pb
 
 def generate_problem(config: dict) -> problem_pb.ProblemDefinition:
     """

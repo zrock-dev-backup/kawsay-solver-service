@@ -2,8 +2,8 @@ import grpc
 from concurrent import futures
 import time
 
-from protos import solution_pb2_grpc
-from services.timetabling_service import TimetablingService
+from .protos import solution_pb2_grpc
+from .services.timetabling_service import TimetablingService
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

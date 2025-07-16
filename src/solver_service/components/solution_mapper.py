@@ -1,7 +1,7 @@
 from ortools.sat.python import cp_model
 
-import problem_definition_pb2 as problem_pb
-import solution_pb2 as solution_pb
+from ..protos import problem_definition_pb2 as problem_pb
+from ..protos import solution_pb2 as solution_pb
 from .modeler import Modeler
 
 class SolutionMapper:

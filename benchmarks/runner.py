@@ -1,21 +1,16 @@
 import argparse
 import json
 import multiprocessing
-import sys
 import time
 from pathlib import Path
 
 import grpc
 import psutil
 
-# Project root to Python path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
-
-from src.protos import problem_definition_pb2 as problem_pb
-from src.protos import solution_pb2_grpc
-from benchmarks.generator import generate_problem
-from benchmarks.report import print_report
+from solver_service.protos import problem_definition_pb2 as problem_pb
+from solver_service.protos import solution_pb2_grpc
+from .generator import generate_problem
+from .report import print_report
 
 # Define the configurations for each problem size
 PROBLEM_SIZES = {

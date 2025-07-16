@@ -1,38 +1,49 @@
-.PHONY: protoBuild run-server run-client benchmark benchmark-update test
+.PHONY: setup install protoBuild run-server run-client benchmark benchmark-update test
 
-# Generates Python code from .proto files and places it in src/protos
+# Default goal for new users.
+default: setup
+
+# Zero-config onboarding recipe.
+setup: install protoBuild
+	@echo "\n✅ Project setup complete."
+	@echo "--> Run 'poetry shell' to activate the virtual environment."
+	@echo "--> Then you can use other make targets like 'make run-server'."
+
+# Installs dependencies via Poetry
+install:
+	@echo "--- 📦 Installing Python dependencies... ---"
+	@poetry install
+
+# Generates Python code from .proto files
 protoBuild:
-	@mkdir -p src/protos
-	@touch src/protos/__init__.py
-	python -m grpc_tools.protoc \
+	@echo "--- 🤖 Generating Protobuf files... ---"
+	@mkdir -p src/solver_service/protos
+	@touch src/solver_service/protos/__init__.py
+	@poetry run python -m grpc_tools.protoc \
 		-I./protos \
-		--python_out=src/protos \
-		--pyi_out=src/protos \
-		--grpc_python_out=src/protos \
+		--python_out=src/solver_service/protos \
+		--pyi_out=src/solver_service/protos \
+		--grpc_python_out=src/solver_service/protos \
 		$(shell find protos -name "*.proto")
-	@echo "Protobuf files generated successfully in src/protos/"
+	@echo "Protobuf files generated."
 
 # Runs the gRPC server
 run-server:
-	@echo "Starting gRPC server..."
-	python src/server.py
+	poetry run python -m solver_service.server
 
-# Runs the test client to call the server
+# Runs the test client
 run-client:
-	@echo "Running test client..."
-	python src/client.py
+	poetry run python -m solver_service.client
 
-# Runs the performance benchmarks against the stored baseline
+# Runs the performance benchmarks
 benchmark:
-	@echo "Running performance benchmarks against baseline..."
-	python benchmarks/runner.py
+	poetry run python -m benchmarks.runner
 
-# Runs the benchmarks and updates the baseline.json file with the new results
+# Updates the benchmark baseline
 benchmark-update:
-	@echo "Running benchmarks and updating baseline.json..."
-	python -m benchmarks.runner --update-baseline
+	poetry run python -m benchmarks.runner --update-baseline
 
-# Runs the unit tests (to be implemented)
+# Runs unit tests
 test:
-	@echo "Running unit tests..."
-	# pytest tests/
+	@echo "Unit tests not implemented."
+	# poetry run pytest tests/
