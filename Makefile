@@ -17,23 +17,21 @@ install:
 # Generates Python code from .proto files
 protoBuild:
 	@echo "--- 🤖 Generating Protobuf files... ---"
-	@mkdir -p src/solver_service/protos
-	@touch src/solver_service/protos/__init__.py
 	@poetry run python -m grpc_tools.protoc \
 		-I./protos \
-		--python_out=src/solver_service \
-		--pyi_out=src/solver_service \
-		--grpc_python_out=src/solver_service \
-		$(shell find protos -name "*.proto")
+		--python_out=src/solver_service/protos \
+		--pyi_out=src/solver_service/protos \
+		--grpc_python_out=src/solver_service/protos \
+		$(shell ls protos/*.proto)
 	@echo "Protobuf files generated."
 
 # Runs the gRPC server
 run-server:
-	poetry run python -m solver_service.server
+	poetry run python -m src.solver_service.server
 
 # Runs the test client
 run-client:
-	poetry run python -m solver_service.client
+	poetry run python -m src.solver_service.client
 
 # Runs the performance benchmarks against the baseline
 benchmark:
