@@ -1,9 +1,9 @@
 import grpc
 from concurrent import futures
-import time
 
 from .protos import solution_pb2_grpc
 from .services.timetabling_service import TimetablingService
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
@@ -14,11 +14,16 @@ def serve():
     server.add_insecure_port(f"[::]:{port}")
     server.start()
     print(f"Server started, listening on port {port}")
+
     try:
-        while True:
-            time.sleep(86400) # One day
+        server.wait_for_termination()
     except KeyboardInterrupt:
+        print("Shutdown signal received.")
+    finally:
+        print("Stopping server...")
         server.stop(0)
+        print("Server stopped.")
+
 
 if __name__ == "__main__":
     serve()

@@ -1,7 +1,7 @@
 import traceback
 from ortools.sat.python import cp_model
 
-from ..constraints import fundamental, workload
+from ..constraints import fundamental, workload, preferences, structural
 from ..protos import problem_definition_pb2 as problem_pb
 from ..protos import solution_pb2 as solution_pb
 from ..protos import solution_pb2_grpc
@@ -24,15 +24,19 @@ class TimetablingService(solution_pb2_grpc.TimetablingServiceServicer):
             modeler = Modeler(request)
 
             # 2. Direct the model building by calling constraint functions in sequence.
+            print("--- Applying Constraints ---")
             fundamental.apply_fundamental_constraints(modeler, request)
+            structural.apply_all_structural_constraints(modeler, request)
             workload.apply_all_workload_constraints(modeler, request)
+            preferences.apply_preference_constraints(modeler, request)
 
             # 3. Finalize the model with an objective function.
             modeler.define_objective()
 
             # 4. Create the solver and solve the constructed model.
             solver = cp_model.CpSolver()
-            solver.parameters.max_time_in_seconds = request.config.max_solve_time_seconds
+            if request.config.max_solve_time_seconds > 0:
+                solver.parameters.max_time_in_seconds = request.config.max_solve_time_seconds
 
             print("\n--- Solving Model ---")
             status = solver.Solve(modeler.model)

@@ -40,17 +40,16 @@ def _apply_max_hours_per_day(modeler: Modeler, problem: problem_pb.ProblemDefini
                              constraint: problem_pb.WorkloadConstraint, teacher_intervals: List) -> None:
     """Enforces maximum working hours per day for a teacher."""
     slots_per_day = problem.time_grid.slots_per_day
+    teacher_id = constraint.teacher_id
     for day in range(problem.time_grid.days):
+        is_on_day_literals = utils.get_day_active_literals(
+            modeler.model, teacher_intervals, day, slots_per_day, f"t{teacher_id}_maxhrs"
+        )
+        
         daily_workload = []
-        for interval in teacher_intervals:
+        for i, interval in enumerate(teacher_intervals):
             activity = modeler.interval_to_activity_map[interval]
-            is_on_day = modeler.model.NewBoolVar(f"{interval.Name()}_on_day_{day}")
-            start_of_day = day * slots_per_day
-            end_of_day = start_of_day + slots_per_day
-
-            modeler.model.Add(interval.StartExpr() >= start_of_day).OnlyEnforceIf(is_on_day)
-            modeler.model.Add(interval.StartExpr() < end_of_day).OnlyEnforceIf(is_on_day)
-
+            is_on_day = is_on_day_literals[i]
             daily_workload.append(activity.duration_in_slots * is_on_day)
 
         if daily_workload:
@@ -80,6 +79,7 @@ def _apply_max_gaps_per_day(modeler: Modeler, problem: problem_pb.ProblemDefinit
 def _apply_max_hours_per_week(modeler: Modeler, constraint: problem_pb.AdvancedWorkloadConstraint,
                               teacher_intervals: List) -> None:
     """Enforces maximum working hours per week."""
+    # This logic assumes all activities are mandatory and must be scheduled.
     weekly_demands = [modeler.interval_to_activity_map[interval].duration_in_slots for interval in teacher_intervals]
     modeler.model.Add(sum(weekly_demands) <= constraint.max_hours_per_week)
 
@@ -89,25 +89,24 @@ def _apply_max_days_per_week(modeler: Modeler, problem: problem_pb.ProblemDefini
                              constraint: problem_pb.AdvancedWorkloadConstraint, teacher_intervals: List) -> None:
     """Enforces maximum working days per week."""
     slots_per_day = problem.time_grid.slots_per_day
-    days_working = []
+    teacher_id = constraint.teacher_id
+    days_working_flags = []
+    
     for day in range(problem.time_grid.days):
-        day_working = modeler.model.NewBoolVar(f"{constraint.teacher_id}_working_day_{day}")
-        start_of_day = day * slots_per_day
-        end_of_day = start_of_day + slots_per_day
-
-        day_activities_literals = []
-        for interval in teacher_intervals:
-            on_this_day = modeler.model.NewBoolVar(f"{interval.Name()}_on_day_{day}_advanced")
-            modeler.model.Add(interval.StartExpr() >= start_of_day).OnlyEnforceIf(on_this_day)
-            modeler.model.Add(interval.StartExpr() < end_of_day).OnlyEnforceIf(on_this_day)
-            day_activities_literals.append(on_this_day)
-
-        if day_activities_literals:
-            modeler.model.AddBoolOr(day_activities_literals).OnlyEnforceIf(day_working)
-            modeler.model.Add(day_working == 0).OnlyEnforceIf([lit.Not() for lit in day_activities_literals])
+        is_working_on_day = modeler.model.NewBoolVar(f"t{teacher_id}_working_day_{day}")
+        
+        day_activity_literals = utils.get_day_active_literals(
+            modeler.model, teacher_intervals, day, slots_per_day, f"t{teacher_id}_maxdays"
+        )
+        
+        if day_activity_literals:
+            # The day is considered "working" if at least one activity starts on it.
+            modeler.model.AddBoolOr(day_activity_literals).OnlyEnforceIf(is_working_on_day)
+            modeler.model.Add(is_working_on_day == 0).OnlyEnforceIf([lit.Not() for lit in day_activity_literals])
         else:
-            modeler.model.Add(day_working == 0)
+            modeler.model.Add(is_working_on_day == 0)
 
-        days_working.append(day_working)
+        days_working_flags.append(is_working_on_day)
 
-    modeler.model.Add(sum(days_working) <= constraint.max_days_per_week)
+    if days_working_flags:
+        modeler.model.Add(sum(days_working_flags) <= constraint.max_days_per_week)

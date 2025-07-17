@@ -24,9 +24,6 @@ def create_working_status_variables(
             model.Add(interval.StartExpr() <= current_slot_start).OnlyEnforceIf(covers_slot)
             model.Add(interval.EndExpr() > current_slot_start).OnlyEnforceIf(covers_slot)
 
-            # This logic is complex and can be simplified.
-            # A simpler version: is_working_slot is true if the sum of intervals present at this slot is > 0.
-            # However, retaining original logic for fidelity.
             model.AddBoolOr(
                 [interval.StartExpr() > current_slot_start, interval.EndExpr() <= current_slot_start]
             ).OnlyEnforceIf(covers_slot.Not())
@@ -79,8 +76,53 @@ def count_gaps_in_schedule(
 
     gaps = model.NewIntVar(0, slots_per_day, f"{entity_id}_day{day}_gaps")
     model.Add(gaps == span_duration - total_work_duration)
-
-    # If no work, gaps are 0.
     model.Add(gaps == 0).OnlyEnforceIf(no_work_on_day)
 
     return gaps
+
+
+def get_day_active_literals(
+    model: cp_model.CpModel,
+    intervals: List[cp_model.IntervalVar],
+    day: int,
+    slots_per_day: int,
+    prefix: str
+) -> List[cp_model.BoolVar]:
+    """
+    Creates boolean variables indicating if an interval starts on a given day.
+    This establishes a full "iff" relationship for robustness.
+
+    Args:
+        model: The CpModel instance.
+        intervals: A list of IntervalVar for which to create literals.
+        day: The day index to check against.
+        slots_per_day: The number of slots in a day.
+        prefix: A unique prefix for the new variable names.
+
+    Returns:
+        A list of boolean variables, one for each interval. Each variable is true
+        if its corresponding interval starts on the specified day.
+    """
+    start_of_day = day * slots_per_day
+    end_of_day = start_of_day + slots_per_day
+    literals = []
+
+    for i, interval in enumerate(intervals):
+        is_on_day = model.NewBoolVar(f"{prefix}_on_day_{day}_interval_{i}")
+
+        # Forward: is_on_day => interval is within day bounds
+        model.Add(interval.StartExpr() >= start_of_day).OnlyEnforceIf(is_on_day)
+        model.Add(interval.StartExpr() < end_of_day).OnlyEnforceIf(is_on_day)
+
+        # Reverse: interval is outside day bounds => NOT is_on_day
+        lit_before = model.NewBoolVar(f"{prefix}_before_day_{day}_interval_{i}")
+        model.Add(interval.StartExpr() < start_of_day).OnlyEnforceIf(lit_before)
+        model.AddImplication(lit_before, is_on_day.Not())
+
+        lit_after = model.NewBoolVar(f"{prefix}_after_day_{day}_interval_{i}")
+        model.Add(interval.StartExpr() >= end_of_day).OnlyEnforceIf(lit_after)
+        model.AddImplication(lit_after, is_on_day.Not())
+
+        literals.append(is_on_day)
+
+    return literals
