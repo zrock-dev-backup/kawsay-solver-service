@@ -1,9 +1,9 @@
 import grpc
 import collections
 
-from solver_service.protos import problem_definition_pb2 as problem_pb
-from solver_service.protos import solution_pb2 as solution_pb
-from solver_service.protos import solution_pb2_grpc
+from .protos import problem_definition_pb2 as problem_pb
+from .protos import solution_pb2 as solution_pb
+from .protos import solution_pb2_grpc
 
 def create_mock_problem() -> problem_pb.ProblemDefinition:
     """Creates a hard-coded problem for testing."""
@@ -19,10 +19,13 @@ def create_mock_problem() -> problem_pb.ProblemDefinition:
     problem.teachers.add(id="T1", name="Dr. Turing")
     problem.teachers.add(id="T2", name="Dr. Hopper")
     
-    hopper = next(t for t in problem.teachers if t.id == "T2")
-    unavailable_slot = hopper.unavailable_slots.add()
-    unavailable_slot.day_index = 0
-    unavailable_slot.slot_index = 1
+    # Use a safe lookup pattern even for creation
+    teacher_map = {t.id: t for t in problem.teachers}
+    hopper = teacher_map.get("T2")
+    if hopper:
+        unavailable_slot = hopper.unavailable_slots.add()
+        unavailable_slot.day_index = 0
+        unavailable_slot.slot_index = 1
 
     problem.student_groups.add(id="G1", name="First Year CS")
     problem.student_groups.add(id="G2", name="Second Year CS")
@@ -33,23 +36,23 @@ def create_mock_problem() -> problem_pb.ProblemDefinition:
     problem.activities.add(id="A3", name="Algorithms", teacher_id="T1", student_group_ids=["G2"], duration_in_slots=1)
     problem.activities.add(id="A4", name="Compilers", teacher_id="T2", student_group_ids=["G2"], duration_in_slots=1)
     
-    algo_activity = next(a for a in problem.activities if a.id == "A3")
-    algo_activity.is_locked = True
-    algo_activity.locked_start_time.day_index = 2
-    algo_activity.locked_start_time.slot_index = 0
+    activity_map = {a.id: a for a in problem.activities}
+    algo_activity = activity_map.get("A3")
+    if algo_activity:
+        algo_activity.is_locked = True
+        algo_activity.locked_start_time.day_index = 2
+        algo_activity.locked_start_time.slot_index = 0
 
-    # --- Constraint Test: Add workload constraints for Dr. Turing ---
+    # --- Constraint Test: Add workload constraints ---
     workload_turing = problem.workload_constraints.add()
     workload_turing.teacher_id = "T1"
-    workload_turing.max_gaps_per_day = 1  # Dr. Turing wants a compact schedule
-    workload_turing.penalty_per_gap = 10   # Make gaps costly
-    workload_turing.max_hours_per_day = 0 # Hard limit of 3 hours per day
+    workload_turing.max_gaps_per_day = 1
+    workload_turing.penalty_per_gap = 10
+    workload_turing.max_hours_per_day = 3 # Hard limit of 3 hours per day
 
-    # --- Constraint Test: Add workload constraints for Dr. Hopper ---
     workload_hopper = problem.workload_constraints.add()
     workload_hopper.teacher_id = "T2"
-    workload_hopper.max_hours_per_day = 2 # Hard limit of 2 hours per day
-    # Dr. Hopper doesn't have a gap constraint, so we don't set it.
+    workload_hopper.max_hours_per_day = 2
     
     return problem
 
@@ -63,11 +66,19 @@ def print_solution(solution: solution_pb.Solution, problem: problem_pb.ProblemDe
     if solution.status not in [solution_pb.OPTIMAL, solution_pb.FEASIBLE]:
         return
         
+    # Use a dictionary for safe and efficient lookups
+    activity_map = {act.id: act for act in problem.activities}
+    
     slots_per_day = problem.time_grid.slots_per_day
     grid = collections.defaultdict(lambda: "---")
     
     for sched_act in solution.scheduled_activities:
-        activity = next(a for a in problem.activities if a.id == sched_act.activity_id)
+        # Replace brittle next() with safe .get()
+        activity = activity_map.get(sched_act.activity_id)
+        if not activity:
+            print(f"Warning: Received unknown activity_id '{sched_act.activity_id}' from server.")
+            continue
+            
         start_day = sched_act.start_time.day_index
         start_slot = sched_act.start_time.slot_index
         
