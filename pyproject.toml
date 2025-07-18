@@ -15,6 +15,8 @@ google-api-python-client = "^2.176.0"
 ortools = "^9.14.6206"
 numpy = "^2.3.1"
 psutil = "^7.0.0"
+pytest = "^8.4.1"
+pytest-mock = "^3.14.1"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
