@@ -2,25 +2,28 @@ import collections
 from ortools.sat.python import cp_model
 from ..protos import problem_definition_pb2 as problem_pb
 
+
 class Modeler:
     """
     Builds the CP-SAT model's core variables and provides mappings for constraints.
     Constraint logic itself is delegated to dedicated modules.
     """
+
     def __init__(self, problem: problem_pb.ProblemDefinition):
         self.problem = problem
         self.model = cp_model.CpModel()
-        
+
         # Core data structures for the model
         self.activity_intervals = {}
         self.objective_penalties = []
-        
+
         # Maps for quick lookups by constraint modules
         self.teacher_activity_map = collections.defaultdict(list)
         self.group_activity_map = collections.defaultdict(list)
         self.interval_to_activity_map = {}
-        self.id_to_activity_map = {} # Added: Required by constraint modules
-        
+        self.id_to_activity_map = {}
+        self.id_to_teacher_map = {}
+
         self._create_variables()
 
     def _create_variables(self):
@@ -30,8 +33,12 @@ class Modeler:
         total_slots = self.problem.time_grid.days * slots_per_day
         domain = (0, total_slots - 1)
 
+        # Pre-process teachers for a quick lookup
+        for teacher in self.problem.teachers:
+            self.id_to_teacher_map[teacher.id] = teacher
+
         for activity in self.problem.activities:
-            self.id_to_activity_map[activity.id] = activity # Populate the new map
+            self.id_to_activity_map[activity.id] = activity
 
             start_var = self.model.NewIntVar(domain[0], domain[1], f"start_{activity.id}")
             interval_var = self.model.NewIntervalVar(

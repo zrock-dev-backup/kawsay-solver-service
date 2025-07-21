@@ -8,6 +8,7 @@ from ..protos import solution_pb2_grpc
 
 from ..components.modeler import Modeler
 from ..components.solution_mapper import SolutionMapper
+from ..components.constraint_builder import ConstraintBuilder
 
 
 class TimetablingService(solution_pb2_grpc.TimetablingServiceServicer):
@@ -22,18 +23,21 @@ class TimetablingService(solution_pb2_grpc.TimetablingServiceServicer):
         try:
             # 1. Instantiate the Modeler. Variables are created automatically.
             modeler = Modeler(request)
+            
+            # 2. Instantiate the ConstraintBuilder. This is the new abstraction layer.
+            builder = ConstraintBuilder(modeler)
 
-            # 2. Direct the model building by calling constraint functions in sequence.
+            # 3. Direct the model building by calling constraint functions in sequence.
             print("--- Applying Constraints ---")
-            fundamental.apply_fundamental_constraints(modeler, request)
-            structural.apply_all_structural_constraints(modeler, request)
-            workload.apply_all_workload_constraints(modeler, request)
-            preferences.apply_preference_constraints(modeler, request)
+            fundamental.apply_fundamental_constraints(builder, request)
+            structural.apply_all_structural_constraints(builder, request)
+            workload.apply_all_workload_constraints(builder, request)
+            preferences.apply_preference_constraints(builder, request)
 
-            # 3. Finalize the model with an objective function.
+            # 4. Finalize the model with an objective function.
             modeler.define_objective()
 
-            # 4. Create the solver and solve the constructed model.
+            # 5. Create the solver and solve the constructed model.
             solver = cp_model.CpSolver()
             if request.config.max_solve_time_seconds > 0:
                 solver.parameters.max_time_in_seconds = request.config.max_solve_time_seconds
@@ -42,14 +46,13 @@ class TimetablingService(solution_pb2_grpc.TimetablingServiceServicer):
             status = solver.Solve(modeler.model)
             print(f"Solver status: {solver.StatusName(status)}")
 
-            # 5. Delegate solution mapping.
+            # 6. Delegate solution mapping.
             mapper = SolutionMapper(request, modeler, solver, status)
             solution = mapper.map_solution()
 
             return solution
 
         except (ValueError, KeyError) as e:
-            # Catches specific errors likely caused by bad input data.
             print(f"Error during model building, likely due to invalid problem definition: {e}")
             traceback.print_exc()
             solution = solution_pb.Solution()
@@ -58,11 +61,10 @@ class TimetablingService(solution_pb2_grpc.TimetablingServiceServicer):
             solution.message = f"Model invalid due to bad input data: {e}"
             return solution
         except Exception as e:
-            # Catches all other unexpected errors.
             print(f"An unexpected internal error occurred: {e}")
             traceback.print_exc()
             solution = solution_pb.Solution()
             solution.job_id = request.job_id
-            solution.status = solution_pb.MODEL_INVALID # Or a new 'INTERNAL_ERROR' status if defined
+            solution.status = solution_pb.MODEL_INVALID
             solution.message = f"An internal server error occurred. See server logs for details."
             return solution
