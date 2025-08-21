@@ -1,9 +1,9 @@
 import grpc
 import collections
 
-from .protos import problem_definition_pb2 as problem_pb
-from .protos import solution_pb2 as solution_pb
-from .protos import solution_pb2_grpc
+from src.solver_service.protos import problem_definition_pb2 as problem_pb
+from src.solver_service.protos import solution_pb2 as solution_pb
+from src.solver_service.protos import solution_pb2_grpc
 
 def create_mock_problem() -> problem_pb.ProblemDefinition:
     """Creates a hard-coded problem for testing."""

@@ -1,9 +1,9 @@
 import grpc
 import collections
 
-from .protos import problem_definition_pb2 as problem_pb
-from .protos import solution_pb2 as solution_pb
-from .protos import solution_pb2_grpc
+from src.solver_service.protos import problem_definition_pb2 as problem_pb
+from src.solver_service.protos import solution_pb2 as solution_pb
+from src.solver_service.protos import solution_pb2_grpc
 
 def create_workload_problem() -> problem_pb.ProblemDefinition:
     """
@@ -65,7 +65,8 @@ def print_solution(solution: solution_pb.Solution, problem: problem_pb.ProblemDe
     header = f"{'Time':<10}"
     [header := header + f"| {'Day ' + str(day):<20} "
      for day in range(problem.time_grid.days)]
-        print(header); print("-" * len(header))
+    print(header)
+    print("-" * len(header))
     for slot in range(slots_per_day):
         row = f"{'Slot ' + str(slot):<10}"; [row := row + f"| {grid[(day, slot)]:<20} " for day in range(problem.time_grid.days)]; print(row)
 
