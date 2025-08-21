@@ -1,7 +1,8 @@
 from ortools.sat.python import cp_model
 
 from src.solver_service.components.modeler import Modeler
-from src.solver_service.constraints import workload
+from src.solver_service.handlers.workload_handler import WorkloadConstraintHandler
+
 from .. import conftest
 
 
@@ -15,7 +16,8 @@ def test_max_hours_per_day_is_enforced(solve_model):
     problem.workload_constraints.add(teacher_id="T1", max_hours_per_day=3)
 
     modeler = Modeler(problem)
-    workload._apply_basic_workload_constraints(modeler, problem)
+    handler = WorkloadConstraintHandler(modeler)
+    handler._apply_basic_workload(problem)
     result = solve_model(modeler)
 
     assert result.status == cp_model.INFEASIBLE
@@ -26,12 +28,27 @@ def test_max_gaps_per_day_adds_penalty(solve_model):
     problem = conftest.create_problem(days=1, slots_per_day=3)
     problem.teachers.add(id="T1")
     # Lock two activities with a gap, for a teacher who should have 0 gaps
-    problem.activities.add(id="A1", teacher_id="T1", duration_in_slots=1, is_locked=True, locked_start_time={'day_index': 0, 'slot_index': 0})
-    problem.activities.add(id="A2", teacher_id="T1", duration_in_slots=1, is_locked=True, locked_start_time={'day_index': 0, 'slot_index': 2})
-    problem.workload_constraints.add(teacher_id="T1", max_gaps_per_day=0, penalty_per_gap=25)
+    problem.activities.add(
+        id="A1",
+        teacher_id="T1",
+        duration_in_slots=1,
+        is_locked=True,
+        locked_start_time={"day_index": 0, "slot_index": 0},
+    )
+    problem.activities.add(
+        id="A2",
+        teacher_id="T1",
+        duration_in_slots=1,
+        is_locked=True,
+        locked_start_time={"day_index": 0, "slot_index": 2},
+    )
+    problem.workload_constraints.add(
+        teacher_id="T1", max_gaps_per_day=0, penalty_per_gap=25
+    )
 
     modeler = Modeler(problem)
-    workload._apply_basic_workload_constraints(modeler, problem)
+    handler = WorkloadConstraintHandler(modeler)
+    handler.apply(problem)
     modeler.define_objective()
     result = solve_model(modeler)
 
@@ -50,7 +67,8 @@ def test_max_hours_per_week_is_enforced(solve_model):
     problem.advanced_workload_constraints.add(teacher_id="T1", max_hours_per_week=4)
 
     modeler = Modeler(problem)
-    workload._apply_advanced_workload_constraints(modeler, problem)
+    handler = WorkloadConstraintHandler(modeler)
+    handler.apply(problem)
     result = solve_model(modeler)
 
     assert result.status == cp_model.INFEASIBLE
@@ -61,12 +79,25 @@ def test_max_days_per_week_is_enforced(solve_model):
     problem = conftest.create_problem(days=3, slots_per_day=1)
     problem.teachers.add(id="T1")
     # Lock activities on 2 different days for a teacher who can only work 1 day
-    problem.activities.add(id="A1", teacher_id="T1", duration_in_slots=1, is_locked=True, locked_start_time={'day_index': 0, 'slot_index': 0})
-    problem.activities.add(id="A2", teacher_id="T1", duration_in_slots=1, is_locked=True, locked_start_time={'day_index': 1, 'slot_index': 0})
+    problem.activities.add(
+        id="A1",
+        teacher_id="T1",
+        duration_in_slots=1,
+        is_locked=True,
+        locked_start_time={"day_index": 0, "slot_index": 0},
+    )
+    problem.activities.add(
+        id="A2",
+        teacher_id="T1",
+        duration_in_slots=1,
+        is_locked=True,
+        locked_start_time={"day_index": 1, "slot_index": 0},
+    )
     problem.advanced_workload_constraints.add(teacher_id="T1", max_days_per_week=1)
 
     modeler = Modeler(problem)
-    workload._apply_advanced_workload_constraints(modeler, problem)
+    handler = WorkloadConstraintHandler(modeler)
+    handler.apply(problem)
     result = solve_model(modeler)
 
     assert result.status == cp_model.INFEASIBLE

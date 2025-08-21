@@ -126,7 +126,7 @@ message SystemBreak {
 
 message TimePreference {
   string id = 1;
-  repeated int32 preferred_slots = 2;
+  repeated TimeSlot preferred_slots = 2;
   int32 penalty_per_violation = 3;
 }
 

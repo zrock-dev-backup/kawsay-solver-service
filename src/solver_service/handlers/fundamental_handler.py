@@ -70,8 +70,9 @@ class FundamentalConstraintHandler(BaseConstraintHandler):
 
         for activity_id, interval in self._modeler.activity_intervals.items():
             activity = self._modeler.id_to_activity_map[activity_id]
-            if activity.duration_in_slots > slots_per_day:
-                continue  # Constraint is moot for activities longer than a day
+            # ERROR comment line
+            #if activity.duration_in_slots > slots_per_day:
+                # continue  # Constraint is moot for activities longer than a day
 
             start_var = interval.StartExpr()
             start_day = self._model.NewIntVar(0, problem.time_grid.days - 1, f"start_day_{activity_id}")

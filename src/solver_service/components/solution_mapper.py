@@ -1,13 +1,15 @@
 from ortools.sat.python import cp_model
 
+from .modeler import Modeler
 from ..protos import problem_definition_pb2 as problem_pb
 from ..protos import solution_pb2 as solution_pb
-from .modeler import Modeler
+
 
 class SolutionMapper:
     """
     Translates the raw output of the CpSolver into the final Solution protobuf message.
     """
+
     def __init__(self, problem: problem_pb.ProblemDefinition, modeler: Modeler, solver: cp_model.CpSolver, status: int):
         self.problem = problem
         self.modeler = modeler
@@ -19,15 +21,17 @@ class SolutionMapper:
         solution = solution_pb.Solution()
         solution.job_id = self.problem.job_id
         solution.status = self._get_solution_status()
-        
+
         if self.status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
-            solution.message = f"Solution found with quality score (lower is better): {self.solver.ObjectiveValue()}"
+            objective_val = self.solver.ObjectiveValue()
+            solution.message = f"Solution found with quality score (lower is better): {objective_val}"
+            solution.quality_score = int(objective_val)
             self._populate_scheduled_activities(solution)
         elif self.status == cp_model.INFEASIBLE:
             solution.message = "The problem is infeasible. No solution exists under the given constraints."
         else:
             solution.message = "An error occurred during solving."
-            
+
         return solution
 
     def _get_solution_status(self) -> solution_pb.SolverStatus:
@@ -46,7 +50,7 @@ class SolutionMapper:
         for activity in self.problem.activities:
             interval_var = self.modeler.activity_intervals[activity.id]
             start_slot_val = self.solver.Value(interval_var.StartExpr())
-            
+
             scheduled_activity = solution.scheduled_activities.add()
             scheduled_activity.activity_id = activity.id
             scheduled_activity.start_time.day_index = start_slot_val // slots_per_day

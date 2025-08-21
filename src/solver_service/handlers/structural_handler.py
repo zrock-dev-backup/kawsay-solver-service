@@ -26,10 +26,22 @@ class StructuralConstraintHandler(BaseConstraintHandler):
             self._model.Add(before_interval.EndExpr() <= after_interval.StartExpr())
 
     def _enforce_consecutive_activities(self, problem: problem_pb.ProblemDefinition) -> None:
-        """Activity A must be immediately followed by Activity B."""
+        """Activity A must be immediately followed by Activity B ON THE SAME DAY."""
         for consecutive in problem.consecutive_activities:
-            first_interval = self._modeler.activity_intervals[consecutive.first_activity_id]
-            second_interval = self._modeler.activity_intervals[consecutive.second_activity_id]
+            # --- CORRECCIÓN: Definir los IDs antes de usarlos ---
+            first_id = consecutive.first_activity_id
+            second_id = consecutive.second_activity_id
+
+            # Obtener los intervalos del modelo
+            first_interval = self._modeler.activity_intervals[first_id]
+            second_interval = self._modeler.activity_intervals[second_id]
+
+            # Forzar a que ambas actividades estén en el mismo día.
+            first_day = self._get_day_of_activity(first_id)
+            second_day = self._get_day_of_activity(second_id)
+            self._model.Add(first_day == second_day)
+
+            # Mantener la restricción original para que sean consecutivas en el tiempo.
             self._model.Add(first_interval.EndExpr() == second_interval.StartExpr())
 
     def _enforce_min_days_between(self, problem: problem_pb.ProblemDefinition) -> None:

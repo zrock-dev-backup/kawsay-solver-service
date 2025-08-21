@@ -1,5 +1,3 @@
-# src/solver_service/handlers/preference_handler.py
-
 from typing import List
 from ortools.sat.python import cp_model
 
@@ -23,18 +21,11 @@ class PreferenceConstraintHandler(BaseConstraintHandler):
             return
 
         pref_map = {p.id: p for p in problem.time_preferences}
-        slots_per_day = problem.time_grid.slots_per_day
 
         for activity in problem.activities:
             if activity.time_preference_id in pref_map:
                 preference = pref_map[activity.time_preference_id]
-                
-                # Convert preferred TimeSlot messages to absolute slot indices
-                absolute_preferred_slots = [
-                    slot.day_index * slots_per_day + slot.slot_index
-                    for slot in preference.preferred_slots
-                ]
-
+                absolute_preferred_slots = list(preference.preferred_slots)
                 self._penalize_if_not_in_preferred_slots(
                     activity.id,
                     absolute_preferred_slots,
@@ -50,8 +41,9 @@ class PreferenceConstraintHandler(BaseConstraintHandler):
         start_var = interval.StartExpr()
         is_preferred = self._model.NewBoolVar(f"is_preferred_{activity_id}")
 
-        self._model.Add(start_var.In(pref_slots)).OnlyEnforceIf(is_preferred)
-        self._model.Add(start_var.NotIn(pref_slots)).OnlyEnforceIf(is_preferred.Not())
+        allowed_assignments = [(s,) for s in pref_slots]
+        self._model.AddAllowedAssignments([start_var], allowed_assignments).OnlyEnforceIf(is_preferred)
+        self._model.AddForbiddenAssignments([start_var], allowed_assignments).OnlyEnforceIf(is_preferred.Not())
 
         self._modeler.objective_penalties.append(is_preferred.Not() * penalty)
 
@@ -68,13 +60,9 @@ class PreferenceConstraintHandler(BaseConstraintHandler):
                 problem,
                 entity_id=f"group_{group_id}",
                 intervals=intervals,
-                max_gaps=0,  # Student schedules should ideally be compact
+                max_gaps=0,
                 penalty=problem.student_gap_penalty_per_day
             )
-
-    # =========================================================================
-    # Private Gap Calculation Logic (Duplicated from Workload Handler for independence)
-    # =========================================================================
 
     def _penalize_daily_gaps(self, problem: problem_pb.ProblemDefinition, entity_id: str, intervals: List, max_gaps: int, penalty: int) -> None:
         for day in range(problem.time_grid.days):
@@ -108,41 +96,62 @@ class PreferenceConstraintHandler(BaseConstraintHandler):
                 self._model.Add(current_slot < interval.EndExpr()).OnlyEnforceIf(end_cond)
                 self._model.Add(current_slot >= interval.EndExpr()).OnlyEnforceIf(end_cond.Not())
 
+                # CORRECCIÓN: Lógica de reificación completa para lit <=> (start_cond AND end_cond)
+                # 1. lit => (start_cond AND end_cond)
                 self._model.AddBoolAnd([start_cond, end_cond]).OnlyEnforceIf(lit)
+                # 2. (start_cond AND end_cond) => lit  (equivale a: NOT start_cond OR NOT end_cond OR lit)
+                self._model.AddBoolOr([start_cond.Not(), end_cond.Not(), lit])
+                
                 literals_for_slot.append(lit)
             
             if literals_for_slot:
+                # is_working_slot <=> OR(literals_for_slot)
                 self._model.AddBoolOr(literals_for_slot).OnlyEnforceIf(is_working_slot)
-                self._model.Add(is_working_slot == 0).OnlyEnforceIf([l.Not() for l in literals_for_slot])
+                self._model.AddImplication(is_working_slot, self._model.NewBoolVar("")).OnlyEnforceIf(
+                     [l.Not() for l in literals_for_slot]
+                ) # Esto es is_working_slot => OR(literals) que es lo mismo que la linea anterior, necesitamos la inversa
+                # La forma correcta y completa es con AddMaxEquality
+                self._model.AddMaxEquality(is_working_slot, literals_for_slot)
+
             else:
                 self._model.Add(is_working_slot == 0)
             is_working_per_slot.append(is_working_slot)
         
         return is_working_per_slot
-
+    
     def _count_gaps_in_schedule(self, problem: problem_pb.ProblemDefinition, entity_id: str, day: int, is_working_slots: List[cp_model.IntVar]) -> cp_model.IntVar:
         slots_per_day = len(is_working_slots)
         
-        first = self._model.NewIntVar(-1, slots_per_day - 1, f"{entity_id}_day{day}_first")
-        last = self._model.NewIntVar(-1, slots_per_day - 1, f"{entity_id}_day{day}_last")
+        slot_indices = list(range(slots_per_day))
+
+        first = self._model.NewIntVar(0, slots_per_day, f"{entity_id}_day{day}_first")
+        last = self._model.NewIntVar(-1, slots_per_day -1, f"{entity_id}_day{day}_last")
         
+        first_options = []
+        last_options = []
         for i in range(slots_per_day):
-            self._model.Add(first == i).OnlyEnforceIf(is_working_slots[i]).OnlyEnforceIf(
-                [is_working_slots[j].Not() for j in range(i)])
-            self._model.Add(last == i).OnlyEnforceIf(is_working_slots[i]).OnlyEnforceIf(
-                [is_working_slots[j].Not() for j in range(i + 1, slots_per_day)])
-
-        no_work = self._model.NewBoolVar(f"{entity_id}_day{day}_no_work")
-        self._model.Add(sum(is_working_slots) == 0).OnlyEnforceIf(no_work)
-        self._model.Add(first == -1).OnlyEnforceIf(no_work)
-        self._model.Add(last == -1).OnlyEnforceIf(no_work)
-
+            var_f = self._model.NewIntVar(0, slots_per_day, f"{entity_id}_day{day}_first_opt_{i}")
+            self._model.Add(var_f == slot_indices[i]).OnlyEnforceIf(is_working_slots[i])
+            self._model.Add(var_f == slots_per_day).OnlyEnforceIf(is_working_slots[i].Not())
+            first_options.append(var_f)
+            
+            var_l = self._model.NewIntVar(-1, slots_per_day - 1, f"{entity_id}_day{day}_last_opt_{i}")
+            self._model.Add(var_l == slot_indices[i]).OnlyEnforceIf(is_working_slots[i])
+            self._model.Add(var_l == -1).OnlyEnforceIf(is_working_slots[i].Not())
+            last_options.append(var_l)
+            
+        self._model.AddMinEquality(first, first_options)
+        self._model.AddMaxEquality(last, last_options)
+        
+        no_work_sentinel = self._model.NewBoolVar(f"{entity_id}_day{day}_no_work")
+        self._model.Add(sum(is_working_slots) == 0).OnlyEnforceIf(no_work_sentinel)
+        self._model.Add(sum(is_working_slots) > 0).OnlyEnforceIf(no_work_sentinel.Not())
+        
         span = self._model.NewIntVar(0, slots_per_day, f"{entity_id}_day{day}_span")
-        self._model.Add(span == last - first + 1).OnlyEnforceIf(no_work.Not())
-        self._model.Add(span == 0).OnlyEnforceIf(no_work)
+        self._model.Add(span == last - first + 1).OnlyEnforceIf(no_work_sentinel.Not())
+        self._model.Add(span == 0).OnlyEnforceIf(no_work_sentinel)
 
         gaps = self._model.NewIntVar(0, slots_per_day, f"{entity_id}_day{day}_gaps")
         self._model.Add(gaps == span - sum(is_working_slots))
-        self._model.Add(gaps == 0).OnlyEnforceIf(no_work)
         
         return gaps
