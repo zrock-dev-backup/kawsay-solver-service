@@ -12,6 +12,7 @@ setup: install protoBuild
 # Installs dependencies via Poetry and the project itself in editable mode.
 install:
 	@echo "--- 📦 Installing Python dependencies... ---"
+	@poetry lock
 	@poetry install
 
 # Generates Python code from .proto files
@@ -31,7 +32,12 @@ run-server:
 
 # Runs the test client
 run-client:
-	poetry run python -m src.solver_service.client
+	poetry run python -m benchmarks.client_fundamental
+	poetry run python -m benchmarks.client_workload
+	poetry run python -m benchmarks.client_structural
+
+run-structural:
+	poetry run python -m benchmarks.client_structural
 
 # Runs the performance benchmarks against the baseline
 benchmark:
